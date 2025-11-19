@@ -1,0 +1,27 @@
+name: Validate Repository
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Make validation script executable
+      run: chmod +x scripts/validate.sh
+      
+    - name: Run validation script
+      run: ./scripts/validate.sh
+

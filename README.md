@@ -1,139 +1,138 @@
-# MCP Kali Server
+# Kali Linux MCP Server
 
-**Kali MCP Server** is a lightweight API bridge that connects MCP Clients (e.g: Claude Desktop, [5ire](https://github.com/nanbingxyz/5ire)) to the API server which allows excuting commands on a Linux terminal.
+A Model Context Protocol (MCP) server that exposes 60+ Kali Linux security tools through an AI-friendly interface. Enables AI assistants like Claude to perform penetration testing and security assessments.
 
-This allows the MCP to run terminal commands like `nmap`, `nxc` or any other tool, interact with web applications using tools like `curl`, `wget`, `gobuster`. 
- And perform **AI-assisted penetration testing**, solving **CTF web challenge** in real time, helping in **solving machines from HTB or THM**.
+## Features
 
-## My Medium Article on This Tool
+**Network Scanning**: nmap, masscan, netdiscover, hping3, tcpdump, tshark  
+**Web Security**: gobuster, nikto, sqlmap, wpscan, burpsuite, zap, ffuf, nuclei  
+**Password Cracking**: hydra, john, hashcat, medusa, crackmapexec  
+**Exploitation**: metasploit, searchsploit, beef, routersploit  
+**Wireless**: aircrack-ng, reaver, wifite, kismet  
+**Windows/AD**: enum4linux, impacket, evil-winrm, kerbrute, mimikatz, responder  
+**OSINT**: theharvester, shodan, spiderfoot, amass, sublist3r  
+**Forensics**: binwalk, foremost  
+**Plus**: shells (netcat, socat, msfvenom), anonymity (proxychains), mobile (apktool)
 
-[![How MCP is Revolutionizing Offensive Security](https://miro.medium.com/v2/resize:fit:828/format:webp/1*g4h-mIpPEHpq_H63W7Emsg.png)](https://yousofnahya.medium.com/how-mcp-is-revolutionizing-offensive-security-93b2442a5096)
+## Quick Start
 
-👉 [**How MCP is Revolutionizing Offensive Security**](https://yousofnahya.medium.com/how-mcp-is-revolutionizing-offensive-security-93b2442a5096)
+### Docker (Recommended)
 
----
-
-## 🔍 Use Case
-
-The goal is to enable AI-driven offensive security testing by:
-
-- Letting the MCP interact with AI endpoints like OpenAI, Claude, DeepSeek, or any other models.
-- Exposing an API to execute commands on a Kali machine.
-- Using AI to suggest and run terminal commands to solve CTF challenges or automate recon/exploitation tasks.
-- Allowing MCP apps to send custom requests (e.g., `curl`, `nmap`, `ffuf`, etc.) and receive structured outputs.
-
-Here are some example for my testing (I used google's AI `gemini 2.0 flash`)
-
-### Example solving my web CTF challenge in RamadanCTF
-https://github.com/user-attachments/assets/dc93b71d-9a4a-4ad5-8079-2c26c04e5397
-
-### Trying to solve machine "code" from HTB
-https://github.com/user-attachments/assets/3ec06ff8-0bdf-4ad5-be71-2ec490b7ee27
-
-
----
-
-## 🚀 Features
-
-- 🧠 **AI Endpoint Integration**: Connect your kali to any MCP of your liking such as claude desktop or 5ier.
-- 🖥️ **Command Execution API**: Exposes a controlled API to execute terminal commands on your Kali Linux machine.
-- 🕸️ **Web Challenge Support**: AI can interact with websites and APIs, capture flags via `curl` and any other tool AI the needs.
-- 🔐 **Designed for Offensive Security Professionals**: Ideal for red teamers, bug bounty hunters, or CTF players automating common tasks.
-
----
-
-## 🛠️ Installation and Running
-
-### On your Kali Machine
 ```bash
-git clone https://github.com/Wh0am123/MCP-Kali-Server.git
-cd MCP-Kali-Server
+# Start Kali API server
+make run
+
+# Or manually
+docker-compose up -d
+python mcp_http_server.py
+```
+
+### Manual Setup
+
+```bash
+# Install dependencies
 pip install -r requirements.txt
-python3 kali_server.py
+
+# Run Kali API server (requires Kali Linux)
+python kali_server.py
+
+# Run MCP HTTP server
+python mcp_http_server.py --kali-server http://localhost:5001
 ```
 
-**Command Line Options:**
-- `--ip <address>`: Specify the IP address to bind the server to (default: `127.0.0.1` for localhost only)
-  - Use `127.0.0.1` for local connections only (secure, recommended)
-  - Use `0.0.0.0` to allow connections from any network interface (very dangerous; use with caution)
-  - Use a specific IP address to bind to a particular network interface
-- `--port <port>`: Specify the port number (default: `5000`)
-- `--debug`: Enable debug mode for verbose logging
+### Configure Cursor/Claude
 
-**Examples:**
-```bash
-# Run on localhost only (secure, default)
-python3 kali_server.py
-
-# Run on all interfaces (less secure, useful for remote access)
-python3 kali_server.py --ip 0.0.0.0
-
-# Run on a specific IP and custom port
-python3 kali_server.py --ip 192.168.1.100 --port 8080
-
-# Run with debug mode
-python3 kali_server.py --debug
-```
-
-### On your MCP client machine (can be local or remote)
-
-```bash
-git clone https://github.com/Wh0am123/MCP-Kali-Server.git
-cd MCP-Kali-Server
-pip install -r requirements.txt
-```
-
-If you're running the client and server on the same machine:
-
-```bash
-./mcp_server.py --server http://127.0.0.1:5000
-```
-
-If separate machines, create an ssh tunnel to your Kali MCP server, then launch the client:
-
-```bash
-ssh -L 5000:localhost:5000 user@KALI_IP
-./mcp_server.py --server http://127.0.0.1:5000
-```
-
-NOTE: If you're openly hosting the Kali MCP server on your network (`kali_server --IP...`), you don't need the SSH tunnel ⚠️(this is highly discouraged)⚠️.
-
-```bash
-./mcp_server.py --server http://LINUX_IP:5000
-```
-
-#### Configuration for claude desktop:
-edit (C:\Users\USERNAME\AppData\Roaming\Claude\claude_desktop_config.json)
+Add to your MCP settings:
 
 ```json
 {
-    "mcpServers": {
-        "kali_mcp": {
-            "command": "python3",
-            "args": [
-                "/absolute/path/to/mcp_server.py",
-                "--server",
-                "http://LINUX_IP:5000/"
-            ]
-        }
+  "mcpServers": {
+    "kali-tools": {
+      "url": "http://localhost:5002/sse"
     }
+  }
 }
 ```
 
-#### Configuration for [5ire](https://github.com/nanbingxyz/5ire) Desktop Application:
-- Simply add an MCP with the command `python3 /absolute/path/to/mcp_server.py http://LINUX_IP:5000` and it will automatically generate the needed configuration files.
+## Architecture
 
-## 🔮 Other Possibilities
+- **kali_server.py**: Flask REST API exposing Kali tools
+- **mcp_http_server.py**: MCP-over-HTTP bridge to Kali API
+- **server/tools/**: Tool implementations organized by category
+- **Docker**: Kali Linux container with all tools pre-installed
 
-There are more possibilites than described since the AI model can now execute commands on the terminal. Here are some example:
+## Requirements
 
-- Memory forensics using Volatility
-  - Automating memory analysis tasks such as process enumeration, DLL injection checks, and registry extraction from memory dumps.
+- Python 3.8+
+- Docker (for containerized deployment)
+- Kali Linux environment (for manual setup)
 
-- Disk forensics with SleuthKit
-  - Automating analysis from disk images, timeline generation, file carving, and hash comparisons.
+## Testing
 
+The project includes a comprehensive test suite using pytest.
 
-## ⚠️ Disclaimer:
-This project is intended solely for educational and ethical testing purposes. Any misuse of the information or tools provided — including unauthorized access, exploitation, or malicious activity — is strictly prohibited.
-The author assumes no responsibility for misuse.
+### Quick Start
+
+```bash
+# Setup test environment
+./scripts/setup_tests.sh
+
+# Run all tests
+make test
+
+# Run with coverage
+make test-coverage
+
+# Run only unit tests (fast)
+make test-unit
+
+# Run integration tests
+make test-integration
+```
+
+### Test Structure
+
+```
+tests/
+├── test_kali_client.py           # HTTP client tests
+├── test_kali_server.py           # Flask API endpoint tests
+├── test_command_executor.py      # Command execution tests
+├── test_mcp_server.py            # MCP server setup tests
+├── test_integration.py           # Integration tests
+└── test_tools/                   # Tool-specific tests
+    ├── test_network_scanning.py
+    ├── test_web_scanning.py
+    └── test_password_cracking.py
+```
+
+### Available Test Commands
+
+```bash
+make test              # Run all tests
+make test-unit         # Run unit tests only
+make test-integration  # Run integration tests only
+make test-coverage     # Run tests with coverage report
+make test-file FILE=tests/test_kali_client.py  # Run specific file
+make clean             # Clean up test artifacts
+make help              # Show all available commands
+```
+
+### Coverage Reports
+
+After running `make test-coverage`, view the HTML report:
+```bash
+open htmlcov/index.html
+```
+
+### Continuous Integration
+
+Tests run automatically on GitHub Actions for:
+- Multiple Python versions (3.9, 3.10, 3.11, 3.12)
+- Every push to main/develop branches
+- All pull requests
+
+See [tests/README.md](tests/README.md) for detailed testing documentation.
+
+## License
+
+MIT License - See LICENSE file

@@ -1,3 +1,11 @@
 Flask>=3.0.0
 requests>=2.31.0
 fastmcp==2.13.1
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.11.1
+responses>=0.23.0
+flask-testing>=0.8.1
