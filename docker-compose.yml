@@ -1,0 +1,61 @@
+services:
+  # Kali Linux Tools - runs security tools with REST API
+  kali-tools:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kali-tools
+    ports:
+      - "5001:5001"
+    environment:
+      - API_PORT=5001
+      - DEBUG_MODE=0
+    volumes:
+      # Mount wordlists directory (optional)
+      - wordlists:/usr/share/wordlists
+      # Mount output directory for scan results (optional)
+      - ./output:/app/output
+    restart: unless-stopped
+    networks:
+      - kali-network
+    # Security options - adjust based on your needs
+    # Note: Some security tools may require elevated privileges
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    # Uncomment the line below if you need full privileged access (not recommended)
+    # privileged: true
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import requests; requests.get('http://localhost:5001/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # # MCP Server - exposes MCP protocol over HTTP/SSE
+  # mcp-server:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.mcp
+  #   container_name: mcp-server
+  #   ports:
+  #     - "5002:5002"
+  #   environment:
+  #     - MCP_PORT=5002
+  #     - MCP_STREAMABLE_HTTP_HOST=0.0.0.0
+  #     - KALI_SERVER=http://kali-tools:5001
+  #   depends_on:
+  #     kali-tools:
+  #       condition: service_healthy
+  #   networks:
+  #     - kali-network
+  #   restart: unless-stopped
+
+volumes:
+  wordlists:
+    driver: local
+
+networks:
+  kali-network:
+    driver: bridge
+

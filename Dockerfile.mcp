@@ -1,0 +1,31 @@
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    MCP_PORT=5002 \
+    MCP_STREAMABLE_HTTP_HOST=0.0.0.0 \
+    MCP_STREAMABLE_HTTP_PORT=5002
+
+# Create app directory
+WORKDIR /app
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir -r requirements.txt
+
+# Copy the MCP HTTP server script and server modules
+COPY mcp_http_server.py .
+COPY server/ ./server/
+COPY LICENSE .
+
+# Make script executable
+RUN chmod +x mcp_http_server.py
+
+# Expose MCP HTTP port
+EXPOSE 5002
+
+# Run the MCP HTTP server
+CMD ["python3", "mcp_http_server.py", "--host", "0.0.0.0"]
+
